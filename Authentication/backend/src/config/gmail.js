@@ -21,16 +21,15 @@ transporter.verify((error, success) => {
   }
 });
 
-module.exports = transporter;
+export default transporter;
 
 // Function to send email
-const sendEmail = async (to, subject, text, html) => {
+export const sendEmail = async ({to, subject, text, html}) => {
   try {
     const info = await transporter.sendMail({
       from: `"Your Name" <${process.env.GOOGLE_USER}>`, // sender address
       to, // list of receivers
       subject, // Subject line
-      text, // plain text body
       html, // html body
     });
 
@@ -40,5 +39,3 @@ const sendEmail = async (to, subject, text, html) => {
     console.error('Error sending email:', error);
   }
 };
-
-module.exports = sendEmail;

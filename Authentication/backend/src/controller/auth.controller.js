@@ -1,5 +1,7 @@
 import { generateToken } from "../config/generateToken.js";
 import userModel from "../models/user.model.js";
+import {sendEmail} from "../config/gmail.js"
+import bcrypt from "bcrypt"
 
 //REGISTER
 export const register = async (req, res) => {
@@ -131,3 +133,113 @@ export const logout = async (req, res) => {
     });
   }
 };
+
+//FORGET PASSWORD
+export const forgotPassword = async (req, res) => {
+  try {
+    const {email } = req.body;
+
+    if(!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required"
+      })
+    }
+
+    const user = await userModel.findOne({email})
+
+    if(!user) {
+      return res.status(400).json({
+        success: false,
+        message: "User not found"
+      })
+    }
+
+    //generate otp
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    user.otp = await bcrypt.hash(otp, 10);
+    user.otpExpiry = Date.now() + 5 * 60 * 1000; // 5 minutes
+
+    await user.save();
+
+    await sendEmail(
+      {
+        to: email,
+        subject: "Password Reset OTP",
+        html: `<h2>Your OTP is ${otp}</h2>
+              <p>This OTP is valid for 5 minutes.</p>`
+      }
+    )
+
+    await sendEmail({
+      to: email,
+      subject: "Forget Password",
+      text: "Please click the link below to reset your password",
+      html: `<p> successfully</p>`
+    })
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP sent successfully"
+    })
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "otp send error",
+      error: error.message
+    })
+  }
+}
+
+
+//VERIFY OTP
+export const verifyOtp = async (req, res) => {
+  try {
+    const {email, otp, password} = req.body;
+
+    const user = await userModel.findOne({email})
+
+    if(!user) {
+      return res.status(400).json({
+        success: false,
+        message: "User not found"
+      })
+    }
+
+     if (user.otpExpiry < Date.now()) {
+        return res.status(400).json({
+            success: false,
+            message: "OTP expired"
+        });
+    }
+
+    const isValid = await bcrypt.compare(otp, user.otp);
+
+    if(!isValid) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP"
+      })
+    }
+
+    user.password = await bcrypt.hash(password, 10);
+    user.otp = undefined;
+    user.otpExpiry = undefined;
+
+    await user.save();
+
+    return res.status(200).json({
+        success: true,
+        message: "Password changed successfully"
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "otp verify error",
+      error: error.message
+    })
+  }
+}
