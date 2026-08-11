@@ -193,7 +193,6 @@ export const forgotPassword = async (req, res) => {
   }
 }
 
-
 //VERIFY OTP
 export const verifyOtp = async (req, res) => {
   try {
@@ -239,6 +238,34 @@ export const verifyOtp = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "otp verify error",
+      error: error.message
+    })
+  }
+}
+
+//GET CURRENT USER
+export const getMe = async (req, res) => {
+  try {
+    const userId = req.user._id
+
+    const user = await userModel.findById(userId)
+
+    if(!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      })
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "user fetched successfully",
+      user
+    })
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "error in fetch current user",
       error: error.message
     })
   }
