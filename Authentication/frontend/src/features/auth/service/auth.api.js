@@ -28,3 +28,15 @@ export const getCurrentUser = async ()=> {
 
     return response.data
 }
+
+export const forgotPassword = async ({email})=> {
+    const response = await authApiInstance.post("/api/auth/forgot-password", {email})
+
+    return response.data
+}
+
+export const verifyOTP = async ({email, otp, password})=> {
+    const response = await authApiInstance.post("/api/auth/verify-otp", {email, otp, password})
+
+    return response.data
+}
