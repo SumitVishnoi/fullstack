@@ -1,20 +1,18 @@
 import { useState } from "react";
-import { Link } from "react-router";
-import {
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
-} from "lucide-react";
+import { Link, Navigate, useNavigate } from "react-router";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import useAuth from "../hook/useAuth";
+import { useEffect } from "react";
 
 const Login = () => {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     email: "",
     password: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const { handleLoginUser, loading, setLoading, user } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -29,18 +27,9 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      setLoading(true);
-
-      // Your login API
-      // await axios.post("/api/auth/login", form, {
-      //   withCredentials: true,
-      // });
-
-      console.log("Login data:", form);
+      await handleLoginUser(form);
     } catch (error) {
       console.error(error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -48,18 +37,19 @@ const Login = () => {
     window.location.href = "http://localhost:5000/api/auth/google";
   };
 
+  useEffect(() => {
+    if (user && !loading) {
+      navigate("/");
+    }
+  }, [user, loading, navigate]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-white to-blue-100 flex items-center justify-center px-5">
       <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8">
-
         {/* Heading */}
-        <h1 className="text-3xl font-bold text-center">
-          Login
-        </h1>
+        <h1 className="text-3xl font-bold text-center">Login</h1>
 
-        <p className="text-gray-500 text-center mt-2 mb-8">
-          Welcome back
-        </p>
+        <p className="text-gray-500 text-center mt-2 mb-8">Welcome back</p>
 
         {/* Google Login */}
         <button
@@ -72,7 +62,6 @@ const Login = () => {
             alt="Google"
             className="w-5 h-5"
           />
-
           Continue with Google
         </button>
 
@@ -80,27 +69,19 @@ const Login = () => {
         <div className="flex items-center my-6">
           <div className="flex-1 border-t"></div>
 
-          <span className="px-4 text-sm text-gray-500">
-            OR
-          </span>
+          <span className="px-4 text-sm text-gray-500">OR</span>
 
           <div className="flex-1 border-t"></div>
         </div>
 
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
-
           {/* Email */}
           <div>
-            <label className="text-sm font-medium">
-              Email
-            </label>
+            <label className="text-sm font-medium">Email</label>
 
             <div className="relative mt-1">
-              <Mail
-                className="absolute left-3 top-3 text-gray-400"
-                size={18}
-              />
+              <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
 
               <input
                 type="email"
@@ -116,15 +97,10 @@ const Login = () => {
 
           {/* Password */}
           <div>
-            <label className="text-sm font-medium">
-              Password
-            </label>
+            <label className="text-sm font-medium">Password</label>
 
             <div className="relative mt-1">
-              <Lock
-                className="absolute left-3 top-3 text-gray-400"
-                size={18}
-              />
+              <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
 
               <input
                 type={showPassword ? "text" : "password"}
@@ -139,16 +115,10 @@ const Login = () => {
               {/* Show / Hide Password */}
               <button
                 type="button"
-                onClick={() =>
-                  setShowPassword(!showPassword)
-                }
+                onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-3 text-gray-500 hover:text-gray-700"
               >
-                {showPassword ? (
-                  <Eye size={18} />
-                ) : (
-                  <EyeOff size={18} />
-                )}
+                {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
               </button>
             </div>
 
@@ -176,7 +146,6 @@ const Login = () => {
         {/* Register */}
         <p className="text-center mt-6 text-gray-600">
           Don't have an account?
-
           <Link
             to="/register"
             className="text-indigo-600 ml-1 font-semibold hover:text-indigo-700"

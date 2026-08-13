@@ -1,4 +1,5 @@
 import { verifyToken } from "../config/generateToken.js"
+import userModel from "../models/user.model.js";
 
 
 export const authenticateUser = async(req, res, next) => {
