@@ -40,3 +40,7 @@ export const verifyOTP = async ({email, otp, password})=> {
 
     return response.data
 }
+
+export const googleLogin = async ()=> {
+    const response = await authApiInstance.get("")
+}

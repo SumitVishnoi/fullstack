@@ -1,6 +1,7 @@
 import express from "express"
-import { forgotPassword, getMe, login, logout, register, verifyOtp } from "../controller/auth.controller.js"
+import { forgotPassword, getMe, googleCallback, login, logout, register, verifyOtp } from "../controller/auth.controller.js"
 import { authenticateUser } from "../middlewares/user.middleware.js"
+import passport from "passport"
 
 const router = express.Router()
 
@@ -40,5 +41,15 @@ router.post("/verify-otp", verifyOtp)
  * @access Private
  */
 router.get("/me", authenticateUser, getMe)
+
+router.get("/google", 
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+// 2. Route that Google redirects to
+router.get("/google/callback", 
+  passport.authenticate("google", { session: false, failureRedirect: "/login" }), 
+  googleCallback // Your controller function handles the response
+);
 
 export default router

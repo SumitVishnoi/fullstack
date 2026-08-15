@@ -1,7 +1,7 @@
 import { generateToken } from "../config/generateToken.js";
 import userModel from "../models/user.model.js";
-import {sendEmail} from "../config/gmail.js"
-import bcrypt from "bcrypt"
+import { sendEmail } from "../config/gmail.js";
+import bcrypt from "bcrypt";
 
 //REGISTER
 export const register = async (req, res) => {
@@ -122,9 +122,9 @@ export const logout = async (req, res) => {
     });
 
     return res.status(200).json({
-        success: true,
-        message: "Logged out"
-    })
+      success: true,
+      message: "Logged out",
+    });
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -137,22 +137,22 @@ export const logout = async (req, res) => {
 //FORGET PASSWORD
 export const forgotPassword = async (req, res) => {
   try {
-    const {email } = req.body;
+    const { email } = req.body;
 
-    if(!email) {
+    if (!email) {
       return res.status(400).json({
         success: false,
-        message: "Email is required"
-      })
+        message: "Email is required",
+      });
     }
 
-    const user = await userModel.findOne({email})
+    const user = await userModel.findOne({ email });
 
-    if(!user) {
+    if (!user) {
       return res.status(400).json({
         success: false,
-        message: "User not found"
-      })
+        message: "User not found",
+      });
     }
 
     //generate otp
@@ -163,64 +163,61 @@ export const forgotPassword = async (req, res) => {
 
     await user.save();
 
-    await sendEmail(
-      {
-        to: email,
-        subject: "Password Reset OTP",
-        html: `<h2>Your OTP is ${otp}</h2>
-              <p>This OTP is valid for 5 minutes.</p>`
-      }
-    )
+    await sendEmail({
+      to: email,
+      subject: "Password Reset OTP",
+      html: `<h2>Your OTP is ${otp}</h2>
+              <p>This OTP is valid for 5 minutes.</p>`,
+    });
 
     await sendEmail({
       to: email,
       subject: "Forget Password",
       text: "Please click the link below to reset your password",
-      html: `<p> successfully</p>`
-    })
+      html: `<p> successfully</p>`,
+    });
 
     return res.status(200).json({
       success: true,
-      message: "OTP sent successfully"
-    })
-
+      message: "OTP sent successfully",
+    });
   } catch (error) {
     return res.status(500).json({
       success: false,
       message: "otp send error",
-      error: error.message
-    })
+      error: error.message,
+    });
   }
-}
+};
 
 //VERIFY OTP
 export const verifyOtp = async (req, res) => {
   try {
-    const {email, otp, password} = req.body;
+    const { email, otp, password } = req.body;
 
-    const user = await userModel.findOne({email})
+    const user = await userModel.findOne({ email });
 
-    if(!user) {
+    if (!user) {
       return res.status(400).json({
         success: false,
-        message: "User not found"
-      })
+        message: "User not found",
+      });
     }
 
-     if (user.otpExpiry < Date.now()) {
-        return res.status(400).json({
-            success: false,
-            message: "OTP expired"
-        });
+    if (user.otpExpiry < Date.now()) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP expired",
+      });
     }
 
     const isValid = await bcrypt.compare(otp, user.otp);
 
-    if(!isValid) {
+    if (!isValid) {
       return res.status(400).json({
         success: false,
-        message: "Invalid OTP"
-      })
+        message: "Invalid OTP",
+      });
     }
 
     user.password = await bcrypt.hash(password, 10);
@@ -230,43 +227,70 @@ export const verifyOtp = async (req, res) => {
     await user.save();
 
     return res.status(200).json({
-        success: true,
-        message: "Password changed successfully"
+      success: true,
+      message: "Password changed successfully",
     });
-
   } catch (error) {
     return res.status(500).json({
       success: false,
       message: "otp verify error",
-      error: error.message
-    })
+      error: error.message,
+    });
   }
-}
+};
 
 //GET CURRENT USER
 export const getMe = async (req, res) => {
   try {
-    const userId = req.user._id
+    const userId = req.user._id;
 
-    const user = await userModel.findById(userId)
+    const user = await userModel.findById(userId);
 
-    if(!user) {
+    if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found"
-      })
+        message: "User not found",
+      });
     }
 
     return res.status(200).json({
       success: true,
       message: "user fetched successfully",
-      user
-    })
+      user,
+    });
   } catch (error) {
     return res.status(500).json({
       success: false,
       message: "error in fetch current user",
-      error: error.message
-    })
+      error: error.message,
+    });
   }
-}
+};
+
+//GOOGLE LOGIN
+
+// This handles the logic AFTER Google redirects back to your server
+export const googleCallback = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: "Authentication failed" });
+    }
+
+    // Generate a JWT for the authenticated user
+    const token = generateToken(req.user.id);
+
+    // Send the token to the client via cookie
+    res.cookie("token", token, { httpOnly: true }); // httpOnly is recommended for security
+    
+    console.log(req.user);
+    return res.send('Google authentication successful');
+
+  } catch (error) {
+    return res.status(500).json({ 
+      success: false, 
+      message: "Google login failed",
+      error: error.message 
+    });
+  }
+};
+
