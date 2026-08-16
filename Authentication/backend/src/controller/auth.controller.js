@@ -273,23 +273,61 @@ export const getMe = async (req, res) => {
 export const googleCallback = async (req, res) => {
   try {
     if (!req.user) {
-      return res.status(401).json({ success: false, message: "Authentication failed" });
+      return res.status(401).json({
+        success: false,
+        message: "Authentication failed"
+      });
     }
 
-    // Generate a JWT for the authenticated user
-    const token = generateToken(req.user.id);
+    const { id: googleId, displayName, emails } = req.user;
 
-    // Send the token to the client via cookie
-    res.cookie("token", token, { httpOnly: true }); // httpOnly is recommended for security
+    const email = emails?.[0]?.value;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Google account email not found"
+      });
+    }
+
+    // Check if user already exists
+    let user = await userModel.findOne({ email });
+
+    if (!user) {
+      // Create new Google user
+      user = await userModel.create({
+        name: displayName,
+        email,
+        googleId,
+        authProvider: "google"
+      });
+    } else {
+      // Update existing user with Google information
+      user.googleId = googleId;
+      user.authProvider = "google";
+
+      await user.save();
+    }
+
+    // Generate JWT using MongoDB user ID
+    const token = generateToken(user._id);
+
+    // Store JWT in HTTP-only cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax"
+    });
+
+    return res.redirect("http://localhost:5173/");
     
-    console.log(req.user);
-    return res.send('Google authentication successful');
-
   } catch (error) {
-    return res.status(500).json({ 
-      success: false, 
+    console.error("Google login error:", error);
+
+    return res.status(500).json({
+      success: false,
       message: "Google login failed",
-      error: error.message 
+      error: error.message
     });
   }
 };
