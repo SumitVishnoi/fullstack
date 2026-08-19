@@ -300,7 +300,7 @@ export const googleCallback = async (req, res) => {
         email,
         googleId,
         authProvider: "google"
-      });
+      }); 
     } else {
       // Update existing user with Google information
       user.googleId = googleId;
