@@ -1,34 +1,52 @@
-import { currentUser, loginUser, logoutUser, registerUser } from "../service/auth.api"
+import { useContext } from "react";
+import {
+  currentUser,
+  loginUser,
+  logoutUser,
+  registerUser,
+} from "../service/auth.api";
+import { AuthContext } from "../auth.context";
 
+export const useAuth = () => {
+  const { user, setUser, setLoading } = useContext(AuthContext);
 
-export const useAuth = ()=> {
-    const handleRegisterUser = async ({name, email, password}) => {
-        const data = await registerUser({name, email, password})
-        console.log(data.user)
-        return data.user
+  const handleRegisterUser = async ({ name, email, password }) => {
+    const data = await registerUser({ name, email, password });
+    setUser(data.user);
+    return data.user;
+  };
+
+  const handleLoginUser = async ({ email, password }) => {
+    const data = await loginUser({ email, password });
+    setUser(data.user);
+    return data.user;
+  };
+
+  const handleLogoutUser = async () => {
+    const data = await logoutUser();
+    setUser(null);
+  };
+
+  console.log(user);
+
+  const handleCurrenttUser = async () => {
+    try {
+      setLoading(true);
+      const data = await currentUser();
+      console.log(data);
+      setUser(data?.user || null);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const handleLoginUser = async ({email, password}) => {
-        const data = await loginUser({email, password})
-        console.log(data.user)
-        return data.user
-    }
-
-    const handleLogoutUser = async () => {
-        const data = await logoutUser()
-        return data
-    }
-
-    const handleCurrenttUser = async () => {
-        const data = await currentUser()
-
-        return data.user
-    }
-
-    return {
-        handleRegisterUser,
-        handleLoginUser,
-        handleLogoutUser,
-        handleCurrenttUser
-    }
-}
+  return {
+    user,
+    handleRegisterUser,
+    handleLoginUser,
+    handleLogoutUser,
+    handleCurrenttUser,
+  };
+};

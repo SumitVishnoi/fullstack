@@ -29,6 +29,8 @@ export const register = async (req, res) => {
       password,
     });
 
+    console.log(user)
+
     const token = generateToken(user._id);
 
     res.cookie("token", token, {
@@ -75,7 +77,6 @@ export const login = async (req, res) => {
         message: "Invalid credentials",
       });
     }
-
     const isMatch = await user.comparePassword(password);
 
     if (!isMatch) {
@@ -136,8 +137,9 @@ export const logout = async (req, res) => {
 //GET CURRENT USER
 export const getMe = async (req, res) => {
     try {
+      console.log(req.user)
         const userId = req.user._id
-
+        console.log(userId)
         const user = await userModel.findById(userId).select("-password")
 
         if(!user) {
