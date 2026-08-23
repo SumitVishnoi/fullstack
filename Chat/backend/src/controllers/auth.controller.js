@@ -137,27 +137,38 @@ export const logout = async (req, res) => {
 //GET CURRENT USER
 export const getMe = async (req, res) => {
     try {
-      console.log(req.user)
-        const userId = req.user._id
-        console.log(userId)
-        const user = await userModel.findById(userId).select("-password")
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized"
+            });
+        }
 
-        if(!user) {
+        const userId = req.user._id;
+
+        const user = await userModel
+            .findById(userId)
+            .select("-password");
+
+        if (!user) {
             return res.status(404).json({
                 success: false,
                 message: "User not found"
-            })
+            });
         }
 
         return res.status(200).json({
             success: true,
             message: "User fetched successfully",
             user
-        })
+        });
+
     } catch (error) {
+        console.error("getMe error:", error);
+
         return res.status(500).json({
             success: false,
             message: "Internal server error"
-        })
+        });
     }
-}
+};

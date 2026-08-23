@@ -7,8 +7,6 @@ import userModel from "../models/user.model.js";
 export const authenticateUser = async(req, res, next) => {
 
     try {
-        console.log("middleware")
-        console.log("token", req.cookies.token)
         const token = req.cookies.token
 
         if(!token) {
@@ -17,8 +15,6 @@ export const authenticateUser = async(req, res, next) => {
                 message: "Not authorized, no token provided"
             })
         }
-
-        console.log("token: ", token)
 
         const decoded = verifyToken(token);
 

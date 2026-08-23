@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../hook/useAuth";
@@ -11,7 +11,7 @@ const Login = () => {
   });
 
   const [showPassword, setShowPassword] = useState(false);
-  const { handleLoginUser, loading } = useAuth();
+  const { handleLoginUser, loading, user } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -27,18 +27,17 @@ const Login = () => {
 
     try {
       await handleLoginUser(form);
-      navigate("/dashboard")
     } catch (error) {
       console.error(error);
     }
   };
 
 
-//   useEffect(() => {
-//     if (user && !loading) {
-//       navigate("/");
-//     }
-//   }, [user, loading, navigate]);
+  useEffect(() => {
+    if (user && !loading) {
+      navigate("/dashboard");
+    }
+  }, [user, loading, navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-white to-blue-100 flex items-center justify-center px-5">

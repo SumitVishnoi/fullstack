@@ -8,7 +8,7 @@ import {
 import { AuthContext } from "../auth.context";
 
 export const useAuth = () => {
-  const { user, setUser, setLoading } = useContext(AuthContext);
+  const { user, setUser, loading, setLoading } = useContext(AuthContext);
 
   const handleRegisterUser = async ({ name, email, password }) => {
     const data = await registerUser({ name, email, password });
@@ -44,6 +44,7 @@ export const useAuth = () => {
 
   return {
     user,
+    loading,
     handleRegisterUser,
     handleLoginUser,
     handleLogoutUser,
