@@ -6,7 +6,8 @@ const conversationSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: "user"
         }
-    ]
+    ],
+    
     messages: [
         {
             type: String
