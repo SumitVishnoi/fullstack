@@ -3,6 +3,7 @@ import cors from "cors"
 import authRouter from "./routes/auth.routes.js"
 import cookieParse from "cookie-parser"
 import cookieParser from "cookie-parser"
+import chatRouter from "./routes/chat.routes.js"
 
 const app = express()
 
@@ -15,5 +16,6 @@ app.use(cors({
 app.use(cookieParser())
 
 app.use("/api/auth", authRouter)
+app.use("/api/chat", chatRouter)
 
 export default app

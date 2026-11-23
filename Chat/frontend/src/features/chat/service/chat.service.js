@@ -18,3 +18,15 @@ export const getMessages = async () => {
 
     return response.data
 }
+
+export const updateMessage = async ({message, id})=> {
+    const response = await api.put(`/api/chat/${id}`, {message})
+
+    return response.data
+}
+
+export const deleteMessage = async (id)=> {
+    const response = await api.delete(`/api/chat/${id}`)
+
+    return response.data
+}
